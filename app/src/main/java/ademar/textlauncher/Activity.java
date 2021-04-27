@@ -11,14 +11,11 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -31,14 +28,12 @@ import static android.content.Intent.ACTION_PACKAGE_ADDED;
 import static android.content.Intent.ACTION_PACKAGE_REMOVED;
 import static android.content.Intent.ACTION_PACKAGE_REPLACED;
 import static android.content.Intent.CATEGORY_LAUNCHER;
-import static android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
 
 public final class Activity extends android.app.Activity implements
         Comparator<Model>,
         TextWatcher,
         AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener,
-        TextView.OnEditorActionListener,
         View.OnClickListener {
 
     private final Adapter adapter = new Adapter();
@@ -63,7 +58,6 @@ public final class Activity extends android.app.Activity implements
         list.setOnItemLongClickListener(this);
 
         filter.addTextChangedListener(this);
-        filter.setOnEditorActionListener(this);
         clear.setOnClickListener(this);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -120,7 +114,6 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-        hideKeyboard();
         try {
             startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
         } catch (Exception e) {
@@ -130,7 +123,6 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
-        hideKeyboard();
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.fromParts("package", adapter.getItem(index).packageName, null));
@@ -142,25 +134,10 @@ public final class Activity extends android.app.Activity implements
         return true;
     }
 
-    @Override
-    public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-        return actionId == IME_ACTION_SEARCH && hideKeyboard();
-    }
-
-    private boolean hideKeyboard() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        if (inputMethodManager != null && filter != null) {
-            inputMethodManager.hideSoftInputFromWindow(filter.getWindowToken(), 0);
-            return true;
-        }
-        return false;
-    }
-
     private void clearSearch() {
         if (filter != null) {
             filter.setText("");
         }
-        hideKeyboard();
     }
 
     private void update() {
